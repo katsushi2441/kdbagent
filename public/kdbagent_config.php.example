@@ -1,0 +1,87 @@
+<?php
+/**
+ * Kurage DB Agent の設定。
+ *
+ * このファイルを kdbagent_config.php という名前にコピーして編集してください。
+ * （.example のままだと読み込まれません）
+ *
+ * 【この製品の考え方】
+ * ここで「見せる表・列・編集の可否」を宣言します。宣言していない表や列は、
+ * ブラウザからもコマンドからも一切さわれません。任意のSQLを打ち込む欄は
+ * ありません。だから、Claude Code のようなAIエージェントに操作させても、
+ * 宣言した範囲より外は壊せません。それがこの製品の安全性の芯です。
+ */
+
+// 画面のタイトル
+define('KDBA_TITLE', 'データ管理');
+
+// 管理画面（ブラウザ）のパスワード。password_hash で作った文字列を入れます。
+// 作り方: php scripts/make_password_hash.php
+// 空にすると鍵なしで開けます（社内の閉じた環境以外では必ず設定してください）。
+define('KDBA_PASSWORD_HASH', '');
+
+// HTTP経由のJSON API（?api=1）で使うトークン。
+// 空のときはHTTPのAPIは無効です（ブラウザUIだけ動きます）。
+// サーバー上でコマンド（CLI）として動かすときは、このトークンは不要です。
+define('KDBA_API_TOKEN', '');
+
+// 監査ログ。だれが・いつ・どの表の・どの行を・どう変えたかを追記します。
+define('KDBA_AUDIT_LOG', __DIR__ . '/kdba_data/audit.log');
+
+/**
+ * 接続するデータベース。名前をキーにして複数持てます。
+ * driver は 'sqlite' か 'mysql'。
+ */
+function kdba_connections() {
+    return array(
+        'main' => array(
+            'driver' => 'sqlite',
+            'path'   => __DIR__ . '/kdba_data/app.sqlite',
+        ),
+        // MySQL の例（使うときはコメントを外して編集）:
+        // 'shop' => array(
+        //     'driver'  => 'mysql',
+        //     'host'    => 'localhost',
+        //     'port'    => 3306,
+        //     'dbname'  => 'myshop',
+        //     'user'    => 'dbuser',
+        //     'pass'    => 'dbpass',
+        //     'charset' => 'utf8mb4',
+        // ),
+    );
+}
+
+/**
+ * 見せる表を宣言します。ここに無い表・列は触れません。
+ *
+ *   conn       … kdba_connections() のどの接続か
+ *   table      … 実際のテーブル名
+ *   label      … 画面に出す名前
+ *   pk         … 主キーの列名（1行を特定するのに使う）
+ *   columns    … 表示する列（この順で出ます。ここに無い列は見えない）
+ *   search     … 検索の対象にする列
+ *   editable   … 編集を許す列（pk や作成日時などは入れない）
+ *   can_insert … 新規追加を許すか
+ *   can_update … 更新を許すか
+ *   can_delete … 削除を許すか
+ *   order      … 並び順（列名 ASC|DESC。信頼できる固定文字列のみ）
+ *   limit      … 一度に取る最大件数
+ */
+function kdba_tables() {
+    return array(
+        'customers' => array(
+            'conn'       => 'main',
+            'table'      => 'customers',
+            'label'      => '顧客',
+            'pk'         => 'id',
+            'columns'    => array('id', 'name', 'email', 'phone', 'note', 'created_at'),
+            'search'     => array('name', 'email', 'phone'),
+            'editable'   => array('name', 'email', 'phone', 'note'),
+            'can_insert' => true,
+            'can_update' => true,
+            'can_delete' => false,
+            'order'      => 'id DESC',
+            'limit'      => 100,
+        ),
+    );
+}

@@ -1,0 +1,8 @@
+public/kdbagent_config.php
+public/kdba_data/
+demo/kdbagent_config.php
+demo/kdba_data/
+outputs/
+*.sqlite
+*.log
+.DS_Store

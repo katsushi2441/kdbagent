@@ -1,0 +1,11 @@
+AddHandler php8.3-script .php
+AddDefaultCharset UTF-8
+
+# データ・設定・ログは外から読ませない
+<FilesMatch "\.(sqlite|log)$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 /kdba_data/
+<Files "kdbagent_config.php">
+  Require all denied
+</Files>
