@@ -87,6 +87,6 @@ function kdba_tables() {
 
 ## 動作環境
 
-- PHP 7.0 以降、PDO の sqlite / mysql ドライバ。
+- PHP 5.6 以降、PDO の sqlite / mysql ドライバ。
 - 一般的なレンタルサーバー（さくら・ロリポップ・heteml 等）でそのまま
   動きます。
