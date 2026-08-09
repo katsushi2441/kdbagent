@@ -16,7 +16,7 @@
  *   利用者が送ってきた文字列をそのままSQLの識別子にしない
  * - 宣言していない表・列・操作(挿入/更新/削除)はどの顔からも実行できない
  *
- * PHP 7.0 以降。依存ライブラリなし（PDO の sqlite / mysql ドライバのみ）。
+ * PHP 5.6 以降。依存ライブラリなし（PDO の sqlite / mysql ドライバのみ）。
  */
 
 $KDBA_DIR = __DIR__;
@@ -38,6 +38,18 @@ if (!defined('KDBA_AUDIT_LOG'))     { define('KDBA_AUDIT_LOG', __DIR__ . '/kdba_
  * ========================================================== */
 
 function kdba_h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+/** random_bytes は PHP7+。5.6でも動くよう、無ければ openssl で代替する。 */
+if (!function_exists('kdba_random_bytes')) {
+    function kdba_random_bytes($n) {
+        if (function_exists('random_bytes')) { return random_bytes($n); }
+        if (function_exists('openssl_random_pseudo_bytes')) { return openssl_random_pseudo_bytes($n); }
+        $s = '';
+        for ($i = 0; $i < $n; $i++) { $s .= chr(mt_rand(0, 255)); }
+        return $s;
+    }
+}
+
 
 /** 例外にせず、呼び出し側で扱えるエラーの形。 */
 class KdbaError extends Exception {}
@@ -433,14 +445,14 @@ function kdba_logged_in() {
     if (KDBA_PASSWORD_HASH === '') { return true; }  // 鍵なし運用
     return !empty($_SESSION['kdba_auth']);
 }
-if (empty($_SESSION['kdba_csrf'])) { $_SESSION['kdba_csrf'] = bin2hex(random_bytes(24)); }
+if (empty($_SESSION['kdba_csrf'])) { $_SESSION['kdba_csrf'] = bin2hex(kdba_random_bytes(24)); }
 $csrf = $_SESSION['kdba_csrf'];
 
 $notice = ''; $error = '';
 
 // ログイン
 if (isset($_POST['login'])) {
-    if (KDBA_PASSWORD_HASH !== '' && password_verify((string)($_POST['password'] ?? ''), KDBA_PASSWORD_HASH)) {
+    if (KDBA_PASSWORD_HASH !== '' && password_verify((string)(isset($_POST['password']) ? $_POST['password'] : ''), KDBA_PASSWORD_HASH)) {
         $_SESSION['kdba_auth'] = true;
         header('Location: ?'); exit;
     }
@@ -450,18 +462,18 @@ if (isset($_GET['logout'])) { unset($_SESSION['kdba_auth']); header('Location: ?
 
 // 書き込み系（CSRF必須）
 if (kdba_logged_in() && $_SERVER['REQUEST_METHOD'] === 'POST'
-    && isset($_POST['do']) && hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
-    $key = (string)($_POST['table'] ?? '');
+    && isset($_POST['do']) && hash_equals($csrf, (string)(isset($_POST['csrf']) ? $_POST['csrf'] : ''))) {
+    $key = (string)(isset($_POST['table']) ? $_POST['table'] : '');
     $actor = 'web';
     try {
         if ($_POST['do'] === 'update') {
-            $r = kdba_update($key, $_POST['id'] ?? null, $_POST['set'] ?? array(), $actor);
+            $r = kdba_update($key, isset($_POST['id']) ? $_POST['id'] : null, isset($_POST['set']) ? $_POST['set'] : array(), $actor);
             $notice = '更新しました（' . (int)$r['updated'] . '件）。';
         } elseif ($_POST['do'] === 'insert') {
-            $r = kdba_insert($key, $_POST['set'] ?? array(), $actor);
+            $r = kdba_insert($key, isset($_POST['set']) ? $_POST['set'] : array(), $actor);
             $notice = '追加しました（id=' . kdba_h($r['inserted_id']) . '）。';
         } elseif ($_POST['do'] === 'delete') {
-            $r = kdba_delete($key, $_POST['id'] ?? null, $actor);
+            $r = kdba_delete($key, isset($_POST['id']) ? $_POST['id'] : null, $actor);
             $notice = '削除しました（' . (int)$r['deleted'] . '件）。';
         }
     } catch (Exception $e) { $error = $e->getMessage(); }
@@ -529,7 +541,7 @@ code{background:var(--card);border-radius:5px;padding:1px 6px;font-size:.92em}
   <nav>
     <?php if (kdba_logged_in()): foreach ($tables as $k => $d): ?>
       <a class="chip <?php echo $k === $cur ? 'on' : ''; ?>" href="?t=<?php echo kdba_h($k); ?>"><?php
-        echo kdba_h($d['label'] ?? $k); ?></a>
+        echo kdba_h(isset($d['label']) ? $d['label'] : $k); ?></a>
     <?php endforeach; if (KDBA_PASSWORD_HASH !== ''): ?>
       <a class="chip" href="?logout=1">ログアウト</a>
     <?php endif; endif; ?>
