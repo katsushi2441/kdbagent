@@ -50,15 +50,50 @@ mysqladmin や phpMyAdmin のような「なんでもできる」道具ではな
 
 ## AIエージェント（Claude Code）から使う
 
-`skills/kdbagent/` をプロジェクトのスキルとして置くと、Claude Code が
-このツール越しにDBを読み書きします。生SQLを書かず、宣言した範囲だけを
-安全に操作します。
+### 方法① MCPサーバーとして繋ぐ（推奨・同梱）
+
+`kdbagent_mcp.php` を同じフォルダに置き、Claude Code に1行で登録します。
+**追加のインストールは不要**（Node.jsもComposerも要りません。PHPだけで動きます）。
+
+```bash
+claude mcp add kdbagent -- php /path/to/kdbagent_mcp.php
+
+# 参照だけ許して、書き込みを禁止する場合
+claude mcp add kdbagent -e KDBA_MCP_READONLY=1 -- php /path/to/kdbagent_mcp.php
+```
+
+Claude Desktop の場合は `claude_desktop_config.json` に:
+
+```json
+{"mcpServers":{"kdbagent":{"command":"php","args":["/path/to/kdbagent_mcp.php"]}}}
+```
+
+登録すると、AIから次の7つの道具が使えるようになります。
+
+| ツール | できること |
+|---|---|
+| `kdb_tables` | 触れる表・列・操作の範囲を知る |
+| `kdb_schema` | 表の構成（列・検索対象・編集可否）を見る |
+| `kdb_select` | キーワード検索・条件絞り込みで行を探す |
+| `kdb_get` | 主キーで1行取り出す |
+| `kdb_insert` | 1行追加する |
+| `kdb_update` | 1行更新する |
+| `kdb_delete` | 1行削除する（許可した表のみ） |
+
+**生SQLを渡す口はありません。** 範囲の判定は今までどおり `kdbagent.php` と
+設定ファイルが行うので、AIが宣言外の表を触ろうとしても
+`その表は許可されていません` と拒否されます（削除禁止の表への削除も同様）。
+読み取り専用モードでは、書き込み系の道具はAIから見えなくなります。
+
+### 方法② コマンドとして使う
 
 ```bash
 php kdbagent.php tables                         # 触れる表と列を知る
 php kdbagent.php select customers --search 田中  # 検索
 php kdbagent.php update customers --id 42 --set phone=090-9999
 ```
+
+`skills/kdbagent/` をプロジェクトのスキルとして置く方法も使えます。
 
 ## ライセンス
 

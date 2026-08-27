@@ -11,9 +11,9 @@ phpMyAdmin / Adminer が「DBの管理者のための万能ツール」だとす
 Kurage DB Agent は「特定の担当者（や、AIエージェント）のための、
 範囲を絞った編集ツール」です。
 
-## 3つの使い方
+## 4つの使い方
 
-同じ `kdbagent.php` が、同じ制限を通して3通りに使えます。
+同じ `kdbagent.php` が、同じ制限を通して4通りに使えます。
 
 ### 1. ブラウザ（人が使う）
 
@@ -34,7 +34,35 @@ php kdbagent.php delete customers --id 42
 すべて JSON を返すので、Claude Code のようなAIエージェントがそのまま
 読み書きできます。`skills/kdbagent/` を同梱してあります。
 
-### 3. HTTP API（外部の別システムが使う）
+### 3. MCPサーバー（AIエージェントが道具として使う）
+
+同梱の `kdbagent_mcp.php` を Claude Code や Claude Desktop に登録すると、
+DBの操作がAIの「道具」として現れます。**追加のインストールは不要**です
+（Node.js も Composer も要りません。PHPだけで動きます）。
+
+```bash
+claude mcp add kdbagent -- php /path/to/kdbagent_mcp.php
+
+# 参照だけ許して、書き込みを禁止する場合
+claude mcp add kdbagent -e KDBA_MCP_READONLY=1 -- php /path/to/kdbagent_mcp.php
+```
+
+Claude Desktop の場合は `claude_desktop_config.json` に:
+
+```json
+{"mcpServers":{"kdbagent":{"command":"php","args":["/path/to/kdbagent_mcp.php"]}}}
+```
+
+公開される道具は7つ（`kdb_tables` / `kdb_schema` / `kdb_select` / `kdb_get` /
+`kdb_insert` / `kdb_update` / `kdb_delete`）。**生SQLを渡す口はありません。**
+範囲の判定は `kdbagent.php` と設定ファイルが行うので、AIが宣言外の表を
+触ろうとすれば `その表は許可されていません` と拒否されます。読み取り専用
+モードでは、書き込み系の道具はAIから見えなくなります。
+
+コマンド方式との違いは「AIが自分で使い方を調べなくてよい」ことです。
+道具の名前・引数・説明がAIに直接渡るので、指示なしで正しく呼べます。
+
+### 4. HTTP API（外部の別システムが使う）
 
 設定で `KDBA_API_TOKEN` を入れると、`?api=1` のJSON APIが有効になります。
 

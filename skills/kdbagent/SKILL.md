@@ -16,6 +16,18 @@ description: このプロジェクトのデータベースを、Kurage DB Agent 
 find . -name kdbagent.php -maxdepth 4 2>/dev/null
 ```
 
+## MCPサーバーが登録されている場合はそちらを優先する
+
+`kdb_tables` / `kdb_select` / `kdb_update` などのツールが使えるなら、それは
+このプロジェクトの kdbagent が MCPサーバーとして繋がっている状態。コマンドを
+叩くより確実なので、そちらを使う。使えない場合だけ以下のコマンド方式を使う。
+
+まだ繋がっていない場合、利用者にこの1行を案内してよい:
+
+```bash
+claude mcp add kdbagent -- php <kdbagent_mcp.phpのパス>
+```
+
 すべてのコマンドは JSON を返す。`{"ok":true,...}` か `{"ok":false,"error":"..."}`。
 
 ## まず、何が触れるかを知る
