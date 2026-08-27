@@ -6,3 +6,4 @@ outputs/
 *.sqlite
 *.log
 .DS_Store
+.env.prod-token
