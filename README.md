@@ -85,6 +85,21 @@ Claude Desktop の場合は `claude_desktop_config.json` に:
 `その表は許可されていません` と拒否されます（削除禁止の表への削除も同様）。
 読み取り専用モードでは、書き込み系の道具はAIから見えなくなります。
 
+### 方法①-b すでにサーバーで運用している kdbagent に繋ぐ（リモートMCP）
+
+社内サーバーやレンタルサーバーで動かしている `kdbagent.php` を、手元のPCの
+Claude Code / Codex から使う場合は `kdbagent_mcp_remote.php` を使います。
+手元にDB接続情報を置かずに済みます。
+
+```bash
+claude mcp add kdbagent \
+  -e KDBA_URL=https://あなたのサーバー/kdbagent/kdbagent.php \
+  -e KDBA_TOKEN=（サーバーに設定したAPIトークン） \
+  -- php /path/to/kdbagent_mcp_remote.php
+```
+
+手順は [docs/03-remote-mcp.md](docs/03-remote-mcp.md)（Codex CLI・Claude Desktopの設定、逆引き表つき）。
+
 ### 方法② コマンドとして使う
 
 ```bash
