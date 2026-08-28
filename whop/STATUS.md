@@ -6,10 +6,13 @@
 - checkout: https://whop.com/checkout/plan_niieVCx2TMmcr
 - 配布zip: outputs/kdbagent-en-20260828.zip（README-en.md 同梱）
 
-## 公開済み（2026-08-28）
+## 公開済み・マーケットプレイス審査通過（2026-08-28）
 
 - product: **visibility=visible**
 - checkout: https://whop.com/checkout/plan_niieVCx2TMmcr — **購入可能を実測**（$79 が現地通貨¥12,848で表示され、カード決済フォームが出る）
+- **whop.com marketplace の審査を通過**（Whopからの通知・2026-08-28）。`discover/search?q=kurage` で
+  Exbridge が3件中2位に表示されることを実測。**画像なしでも掲載された**
+- ただし「database agent」(28件)「mcp」(29件)の検索では上位に出ない。露出はこれからの課題
 
 ## 配布は自前で完結させた（Whop CLIに商品へファイルを添付する機能が無いため）
 
