@@ -33,6 +33,47 @@ if (!defined('KDBA_PASSWORD_HASH')) { define('KDBA_PASSWORD_HASH', ''); }
 if (!defined('KDBA_API_TOKEN'))     { define('KDBA_API_TOKEN', ''); }
 if (!defined('KDBA_AUDIT_LOG'))     { define('KDBA_AUDIT_LOG', __DIR__ . '/kdba_data/audit.log'); }
 
+/* 表示言語。'ja'（既定）か 'en'。設定に define('KDBA_LANG', 'en'); を書くと英語になる。 */
+if (!defined('KDBA_LANG')) { define('KDBA_LANG', getenv('KDBA_LANG') === 'en' ? 'en' : 'ja'); }
+
+/**
+ * 画面とエラーの文言。英語で使う場合のためだけに持つ。
+ * キーは日本語をそのまま使い、辞書に無ければ日本語を返す（訳し漏れで壊れない）。
+ */
+function kdba_t($ja, $arg = '')
+{
+    static $en = array(
+        'その表は許可されていません: '     => 'This table is not allowed: ',
+        'その列は許可されていません: '     => 'This column is not allowed: ',
+        'この表は追加が許可されていません' => 'Inserting is not allowed for this table',
+        'この表は更新が許可されていません' => 'Updating is not allowed for this table',
+        'この表は削除が許可されていません' => 'Deleting is not allowed for this table',
+        'トークンが違います'               => 'Invalid token',
+        'HTTP APIは無効です（設定でトークンを設定してください）' => 'The HTTP API is disabled. Set KDBA_API_TOKEN in your config to enable it.',
+        '未知のcmd: '                      => 'Unknown cmd: ',
+        'パスワードが違います。'           => 'Wrong password.',
+        'ログイン'   => 'Sign in',
+        'ログアウト' => 'Sign out',
+        '検索'       => 'Search',
+        '編集'       => 'Edit',
+        '保存'       => 'Save',
+        '削除'       => 'Delete',
+        '追加'       => 'Add',
+        '新規追加'   => 'Add new',
+        '閉じる'     => 'Close',
+        '開く'       => 'Open',
+        '解除'       => 'Clear',
+        '表'         => 'Table',
+        '列'         => 'Column',
+        '件'         => ' rows',
+        '／ 接続'    => ' / connection',
+        'を開きます。' => ' will open.',
+        'データ管理' => 'Data Manager',
+    );
+    $out = (KDBA_LANG === 'en' && isset($en[$ja])) ? $en[$ja] : $ja;
+    return $out . $arg;
+}
+
 /* ============================================================
  * データ層（すべての顔が通る。ここが安全性の本体）
  * ========================================================== */
@@ -58,7 +99,7 @@ class KdbaError extends Exception {}
 function kdba_table_def($key) {
     $all = kdba_tables();
     if (!isset($all[(string)$key])) {
-        throw new KdbaError('その表は許可されていません: ' . $key);
+        throw new KdbaError(kdba_t('その表は許可されていません: ', $key));
     }
     $d = $all[(string)$key];
     // 既定値を補う
@@ -72,7 +113,7 @@ function kdba_table_def($key) {
 function kdba_assert_column($def, $col, $pool = 'columns') {
     $list = isset($def[$pool]) ? $def[$pool] : array();
     if (!in_array((string)$col, $list, true)) {
-        throw new KdbaError('その列は許可されていません: ' . $col);
+        throw new KdbaError(kdba_t('その列は許可されていません: ', $col));
     }
     return (string)$col;
 }
@@ -201,7 +242,7 @@ function kdba_filter_editable($def, $data) {
 
 function kdba_insert($key, $data, $actor = 'cli') {
     $def = kdba_table_def($key);
-    if (empty($def['can_insert'])) { throw new KdbaError('この表は追加が許可されていません'); }
+    if (empty($def['can_insert'])) { throw new KdbaError(kdba_t('この表は追加が許可されていません')); }
     $data = kdba_filter_editable($def, $data);
     if (!$data) { throw new KdbaError('追加する値がありません（editableの列のみ受け付けます）'); }
 
@@ -221,7 +262,7 @@ function kdba_insert($key, $data, $actor = 'cli') {
 
 function kdba_update($key, $pk_val, $data, $actor = 'cli') {
     $def = kdba_table_def($key);
-    if (empty($def['can_update'])) { throw new KdbaError('この表は更新が許可されていません'); }
+    if (empty($def['can_update'])) { throw new KdbaError(kdba_t('この表は更新が許可されていません')); }
     $pk = kdba_assert_column($def, $def['pk'], 'columns');
     $data = kdba_filter_editable($def, $data);
     if (!$data) { throw new KdbaError('更新する値がありません（editableの列のみ受け付けます）'); }
@@ -242,7 +283,7 @@ function kdba_update($key, $pk_val, $data, $actor = 'cli') {
 
 function kdba_delete($key, $pk_val, $actor = 'cli') {
     $def = kdba_table_def($key);
-    if (empty($def['can_delete'])) { throw new KdbaError('この表は削除が許可されていません'); }
+    if (empty($def['can_delete'])) { throw new KdbaError(kdba_t('この表は削除が許可されていません')); }
     $pk = kdba_assert_column($def, $def['pk'], 'columns');
     $pdo = kdba_pdo($def['conn']);
     $sql = 'DELETE FROM ' . kdba_quote_ident($def['table'])
@@ -402,12 +443,12 @@ if (isset($_GET['api'])) {
         echo json_encode(array('ok' => $ok) + $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     };
-    if (KDBA_API_TOKEN === '') { $emit(false, array('error' => 'HTTP APIは無効です（設定でトークンを設定してください）')); }
+    if (KDBA_API_TOKEN === '') { $emit(false, array('error' => kdba_t('HTTP APIは無効です（設定でトークンを設定してください）'))); }
     $tok = isset($_SERVER['HTTP_X_KDBA_TOKEN']) ? $_SERVER['HTTP_X_KDBA_TOKEN']
          : (isset($_GET['token']) ? $_GET['token'] : '');
     if (!hash_equals(KDBA_API_TOKEN, (string)$tok)) {
         http_response_code(401);
-        echo json_encode(array('ok' => false, 'error' => 'トークンが違います'));
+        echo json_encode(array('ok' => false, 'error' => kdba_t('トークンが違います')));
         exit;
     }
     $in = $_POST + $_GET;
@@ -433,7 +474,7 @@ if (isset($_GET['api'])) {
             case 'delete':
                 $emit(true, kdba_delete($table, isset($in['id']) ? $in['id'] : null, 'api')); break;
             default:
-                $emit(false, array('error' => '未知のcmd: ' . $cmd));
+                $emit(false, array('error' => kdba_t('未知のcmd: ', $cmd)));
         }
     } catch (Exception $e) { $emit(false, array('error' => $e->getMessage())); }
     exit;
