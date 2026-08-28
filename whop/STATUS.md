@@ -53,3 +53,22 @@ CLIに紐付け先を指定するオプションが無い（filename と visibil
 - `KDBA_MCP_LANG=en` でMCPのツール説明・instructions・エラーが英語になり、子プロセスの本体にも伝播する
 - 既定は日本語のままなので、既存の日本語利用者には影響しない
 - 実測済み: 英語モードで "This table is not allowed: sqlite_master" / "Deleting is not allowed for this table"
+
+## Whop公開フォーラムへの告知（2026-08-28・投稿済み）
+
+- post_id: `post_1CeURWJwWdsceTwLq11xiu`
+- 表示先: https://whop.com/exbridge/exp_mxirRFFO38VifY/app/ （Exbridgeストアの「Public forum」タブ）
+- 内容: 英語の商品リリース告知（設定コードの実例・"This table is not allowed" の実挙動・$79/MIT・チェックアウトリンク）
+
+### 詰まった点と正解（次回のため）
+
+1. **ベースURLは `https://api.whop.com/api/v1`**（`/v1` ではない。OpenAPI定義の servers に明記）
+2. **`experience_id: 'public'` + `company_id` は権限エラーになる**
+   （"Actor is missing all required permissions: forum:post:create" と出るが、原因は権限ではない）
+   → **実在の Public forum experience の ID を直接指定すれば通る**
+3. Exbridgeの experience 一覧（`GET /api/v1/experiences?company_id=biz_…`）:
+   - `exp_mxirRFFO38VifY` Public forum (app: Forums) ← **告知はここへ**
+   - `exp_1w9wE9n4nkhpq5` Kit download (app: Files)
+   - `exp_l55rfyLdavw1Bb` / `exp_PJ9hmSLEMzqWa1` Kurage GEO
+4. **APIキーは `/home/kojima/work/whop/.env` の `APIKEY`**（kgeo/.env の KGEO_WHOP_API_KEY と同一・最高権限）
+5. CLI（whop 0.16.2）には forum-posts / experiences コマンドが無い。**フォーラム投稿はAPI直叩き**
