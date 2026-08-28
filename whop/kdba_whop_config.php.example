@@ -1,0 +1,7 @@
+<?php
+/* Whop配布の設定。実ファイルは kdba_whop_config.php（gitに入れない）。 */
+define('KDBA_WHOP_WEBHOOK_SECRET', '');            // whop webhooks create の戻りの secret
+define('KDBA_WHOP_PLAN_ID', 'plan_niieVCx2TMmcr'); // この商品の決済だけを扱う
+define('KDBA_DL_DIR', __DIR__ . '/kdba_files');    // zipとtokens.jsonの置き場（Web非公開）
+define('KDBA_DL_BASE', 'https://exbridge.jp/kdba/kdba_download.php');
+define('KDBA_MAIL_FROM', 'Exbridge <bm@exbridge.jp>');

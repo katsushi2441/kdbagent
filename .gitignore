@@ -7,3 +7,5 @@ outputs/
 *.log
 .DS_Store
 .env.prod-token
+kdba_whop_config.php
+whop/kdba_whop_config.php
