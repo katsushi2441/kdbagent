@@ -22,9 +22,24 @@
 - **Whop CLIのwebhook作成にはAPIキーログインが必要**（OAuthでは403）。
   `whop login --api-key <KGEO_WHOP_API_KEY>` で通る（kgeoと同じキーを流用）
 
+## 商品画像（作成済み・紐付けだけが未完）
+
+- ローカル: `whop/product_banner.png`(1600x900) / `whop/product_square.png`(1000x1000)
+- 公開URL: https://exbridge.jp/images/kdbagent-whop-banner.png / …-square.png
+- Whop CDNにもアップロード済み(file_5BWx8e2uEAYQ7・upload_status=ready・URL生存)
+
+**CLIからの紐付けは3方式とも失敗した（2026-08-28実測）**:
+1. `products update --banner_image '{"id":"file_…"}'` → エラーなしで無視される(banner_image=null)
+2. `products update --banner_image '{"direct_upload_id":"file_…"}'` → "The direct upload ID provided is invalid"
+3. `plans update --image '{"id":"file_…"}'` → **"Attachment does not belong to this resource"**
+
+3の文言から、`whop files create` で上げたファイルは商品/プランに属していない扱いになると分かる。
+CLIに紐付け先を指定するオプションが無い（filename と visibility のみ）。**管理画面での投入が要る。**
+
 ## 残っていること
 
-1. 商品画像・ギャラリー画像（未設定）
+1. **商品画像を管理画面から設定**（whop.com のダッシュボード → Kurage DB Agent → 画像）
+   画像がないとストア一覧に並ばない仕組みのため、これが公開の最後の1手
 2. Whopストア一覧（whop.com/exbridge/）に並んでいない。既存のKurage GEOは experience(exp_) が
    紐づいており、CLIには紐付けコマンドが見当たらない。管理画面での確認が要る
 3. アフィリエイト率の設定（global_affiliate_percentage）
