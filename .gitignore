@@ -9,3 +9,7 @@ outputs/
 .env.prod-token
 kdba_whop_config.php
 whop/kdba_whop_config.php
+itreview/
+*.bak-*
+scripts/deploy_demo.sh
+scripts/make_product_image.py
