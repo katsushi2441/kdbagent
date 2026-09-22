@@ -717,5 +717,6 @@ code{background:var(--card);border-radius:5px;padding:1px 6px;font-size:.92em}
 <?php endif; ?>
 </div></main>
 <footer>Kurage DB Agent ／ 株式会社エクスブリッジ ／ 設定で宣言した表・列だけを、人にもエージェントにも安全に。</footer>
+<?php if (($_SERVER['HTTP_HOST'] ?? '') === 'proto.exbridge.jp'): ?><p style="text-align:center;font-size:13px;margin:14px 0;color:#5d6b7a">これはデモです。<a href="https://kappstore.exbridge.jp/app.php?id=719429354f079793&amp;ref=kdbagent" target="_blank" rel="noopener">この製品をオンプレミスで導入する（商品ページ）</a></p><?php endif; ?>
 </body>
 </html>
