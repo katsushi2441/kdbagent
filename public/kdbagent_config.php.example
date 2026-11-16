@@ -88,3 +88,6 @@ function kdba_tables() {
 
 // （任意）上のメニューに、同じログインで開く別画面へのリンクを足す。
 // $KDBA_MENU_LINKS = array('見積書一覧' => 'mitsumori.php');
+
+// （任意）ログインを保つ日数。書くと、その日数は勝手にログアウトしない（ログイン情報は監査ログと同じフォルダの sessions に保存）
+// define('KDBA_SESSION_DAYS', 365);

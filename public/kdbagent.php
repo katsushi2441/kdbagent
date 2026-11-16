@@ -433,6 +433,15 @@ if (PHP_SAPI === 'cli') {
  * ここから下は HTTP（ブラウザ / JSON API）
  * ========================================================== */
 
+// 設定で define('KDBA_SESSION_DAYS', 365); とすると、その日数ログインを保つ（既定はPHPの標準）
+if (defined('KDBA_SESSION_DAYS') && (int)KDBA_SESSION_DAYS > 0) {
+    $kdba_life = (int)KDBA_SESSION_DAYS * 86400;
+    @ini_set('session.gc_maxlifetime', (string)$kdba_life);
+    @ini_set('session.cookie_lifetime', (string)$kdba_life);
+    $kdba_sd = dirname(KDBA_AUDIT_LOG) . '/sessions';   // 共用の置き場だと他アプリの掃除で消されるので専用に
+    if (!is_dir($kdba_sd)) { @mkdir($kdba_sd, 0700, true); }
+    if (is_dir($kdba_sd) && is_writable($kdba_sd)) { session_save_path($kdba_sd); }
+}
 session_start();
 
 /* ---- 顔③: JSON API（?api=1 + トークン）---- */
