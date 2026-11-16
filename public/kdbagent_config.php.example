@@ -85,3 +85,6 @@ function kdba_tables() {
         ),
     );
 }
+
+// （任意）上のメニューに、同じログインで開く別画面へのリンクを足す。
+// $KDBA_MENU_LINKS = array('見積書一覧' => 'mitsumori.php');

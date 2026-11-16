@@ -583,7 +583,13 @@ code{background:var(--card);border-radius:5px;padding:1px 6px;font-size:.92em}
     <?php if (kdba_logged_in()): foreach ($tables as $k => $d): ?>
       <a class="chip <?php echo $k === $cur ? 'on' : ''; ?>" href="?t=<?php echo kdba_h($k); ?>"><?php
         echo kdba_h(isset($d['label']) ? $d['label'] : $k); ?></a>
-    <?php endforeach; if (KDBA_PASSWORD_HASH !== ''): ?>
+    <?php endforeach;
+      /* 設定の $KDBA_MENU_LINKS = array('表示名' => 'URL') で、同じログインで開く別画面へのリンクを足せる */
+      if (isset($GLOBALS['KDBA_MENU_LINKS']) && is_array($GLOBALS['KDBA_MENU_LINKS'])):
+        foreach ($GLOBALS['KDBA_MENU_LINKS'] as $ml_label => $ml_href): ?>
+      <a class="chip" href="<?php echo kdba_h($ml_href); ?>"><?php echo kdba_h($ml_label); ?></a>
+    <?php endforeach; endif;
+      if (KDBA_PASSWORD_HASH !== ''): ?>
       <a class="chip" href="?logout=1">ログアウト</a>
     <?php endif; endif; ?>
   </nav>
